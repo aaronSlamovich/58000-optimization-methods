@@ -20,11 +20,10 @@ end
 cp = [100, 150]; % cp stands for 'current point' point of SD alg
 
 % calculate derivative at point
-val_cp = griewank(cp);
-d_cp = d_griewank(cp);
-fprintf('griewank(%d,%d) = %d\n', cp(1), cp(2), val_cp)
+cp_val = griewank(cp); % evaluate griewank at cp
+d_cp = d_griewank(cp); % evaluate derivative of griewank at cp
+fprintf('griewank(%d,%d) = %d\n', cp(1), cp(2), cp_val)
 fprintf('derivative of griewank(%d,%d) = (%d,%d)\n', cp(1), cp(2), d_cp(1), d_cp(2))
 
-
-
+% conduct line search in direction of negative gradient
 
