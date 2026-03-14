@@ -12,18 +12,20 @@ end
 
 % returns value of derivative of griewank function at current point 'cp'
 function [d_f_x] = d_griewank(cp)
-    d_f_x(1) = 2/4000 .* cp(1) - 1/sqrt(1) * sin(cp(1)/sqrt(1))' * cos(cp(2)/sqrt(2)); % yes, I know 1/sqrt(1) = 1, I am just writing my code explicitly
-    d_f_x(2) = 2/4000 .* cp(2) - 1/sqrt(2) * cos(cp(1)/sqrt(1))' * sin(cp(2)/sqrt(2));
+    d_f_x(1) = 2/4000 .* cp(1) + 1/sqrt(1) * sin(cp(1)/sqrt(1))' * cos(cp(2)/sqrt(2)); % yes, I know 1/sqrt(1) = 1, I am just writing my code explicitly
+    d_f_x(2) = 2/4000 .* cp(2) + 1/sqrt(2) * cos(cp(1)/sqrt(1))' * sin(cp(2)/sqrt(2));
 end
 
-function [x0,x2] = bracket(cp)
+function [a0,b0] = bracket(cp, d_cp)
     % find bracket for golden section
+    %phi = @(alpha) griewank(cp - alpha*d_cp);
+    a0 = 0;
+
     space = 0.075;
     
     x0 = cp;
     
     dx = d_cp;
-    dx = dx / norm(dx);
     
     x1 = x0 - space * dx;
     space = 2 * space;
@@ -32,45 +34,43 @@ function [x0,x2] = bracket(cp)
     
     while griewank(x1) >= griewank(x0)
         x1 = x1 - space * dx;
+        space = space / 2;
         x2 = x1;
-        space = 2 * space;
     end
     
     while griewank(x2) <= griewank(x1)
         x2 = x2 - space * dx;
         space = 2 * space;
     end
+    b0 = norm((x2-x0) ./ d_cp);
 end
 
-function new_point = golden_search(a0, b0)
+function alpha = golden_search(a0, b0, cp, d_cp)
+    % a0,b0 are scalars returned by the bracketing
+    phi = @(alpha) griewank(cp - alpha*d_cp);
     r = (3 - sqrt(5)) / 2; % r for ratio
     
     % remember log property log_b(x) = log_a(x) / log_a(b)
-    n = ceil(log(0.23) / log(1-r)); % finds iterations n S.T. uncertainty < 0.23
+    n = ceil(log(0.23/(b0-a0)) / log(1-r)); % finds iterations n S.T. uncertainty < 0.23
     
-    for i=0:n
+    for i=1:n
         
         a1 = a0 + r * (b0 - a0);
         b1 = b0 - r * (b0 - a0);
     
-        fprintf('-----iteration =  %d  -----\n', i)
-        fprintf('a_%d = %d\n', i, a0)
-        fprintf('b_%d = %d\n', i, b0)
-        fprintf('f(a_%d) = %d\n', i, 8 * exp(1-a0) + 7 * log(a0))
-        fprintf('f(b_%d) = %d\n', i, 8 * exp(1-b0) + 7 * log(b0))
-        fprintf('uncertainty interval = %d\n', b0-a0)
-    
-        % this code assume a function is convex, which might not be a safe
-        % assumption
         % choose the greater between f(a1) and f(b1)
-        if (griewank(a1)) > (griewank(b1))
+        if (phi(a1)) > (phi(b1))
             a0 = a1;
         else
             b0 = b1;
         end
         
     end
-    new_point = min(griewank(a1), griewank(b1));
+    if phi(a1) < phi(b1)
+        alpha = a1;
+    else 
+        alpha = b1;
+    end
 end
 
 % ----------------steepest descent algorithm---------------
@@ -84,9 +84,10 @@ for i = 1:100
     fprintf('derivative of griewank(%d,%d) = (%d,%d)\n', cp(1), cp(2), d_cp(1), d_cp(2))
     
     % find bracket for golden section
-    [x1,x2] = bracket(cp);
+    [x1,x2] = bracket(cp, d_cp);
     
     % conduct golden section search in direction of negative gradient
     
-    cp = golden_search(x1, x2);
+    alpha = golden_search(x1, x2, cp, d_cp);
+    cp = cp - alpha * d_cp;
 end
