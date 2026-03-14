@@ -12,45 +12,46 @@ end
 
 % returns value of derivative of griewank function at current point 'cp'
 function [d_f_x] = d_griewank(cp)
-    d_f_x(1) = 2/4000 .* cp(1) - 1/sqrt(1) * sin(cp(1)/sqrt(1))' * cos(cp(2)/sqrt(2)); % yes, I know 1/sqrt(1) = 1, I am just writing my code explicitly
-    d_f_x(2) = 2/4000 .* cp(2) - 1/sqrt(2) * cos(cp(1)/sqrt(1))' * sin(cp(2)/sqrt(2));
+    d_f_x(1) = 2/4000 .* cp(1) + 1/sqrt(1) * sin(cp(1)/sqrt(1))' * cos(cp(2)/sqrt(2)); % yes, I know 1/sqrt(1) = 1, I am just writing my code explicitly
+    d_f_x(2) = 2/4000 .* cp(2) + 1/sqrt(2) * cos(cp(1)/sqrt(1))' * sin(cp(2)/sqrt(2));
 end
 
-function [x0,x2] = bracket(cp, d_cp)
+function [a0,b0] = bracket(cp, d_cp)
     % find bracket for golden section
-    phi = @(alpha) griewank(cp - alpha*d_cp);
+    %phi = @(alpha) griewank(cp - alpha*d_cp);
+    a0 = 0;
 
     space = 0.075;
     
     x0 = cp;
     
     dx = d_cp;
-    dx = dx / norm(dx);
     
     x1 = x0 - space * dx;
     space = 2 * space;
     x2 = x1 - space * dx;
     space = 2 * space;
     
-    while phi(spcae) >= phi(space)
+    while griewank(x1) >= griewank(x0)
         x1 = x1 - space * dx;
-        x2 = x1;
         space = space / 2;
+        x2 = x1;
     end
     
-    while phi(space) <= phi(space)
+    while griewank(x2) <= griewank(x1)
         x2 = x2 - space * dx;
         space = 2 * space;
     end
+    b0 = norm((x2-x0) ./ d_cp);
 end
 
-function alpha = golden_search(a0, b0, d_cp)
+function alpha = golden_search(a0, b0, cp, d_cp)
     % a0,b0 are scalars returned by the bracketing
     phi = @(alpha) griewank(cp - alpha*d_cp);
     r = (3 - sqrt(5)) / 2; % r for ratio
     
     % remember log property log_b(x) = log_a(x) / log_a(b)
-    n = ceil(log(0.23) / log(1-r)); % finds iterations n S.T. uncertainty < 0.23
+    n = ceil(log(0.23/(b0-a0)) / log(1-r)); % finds iterations n S.T. uncertainty < 0.23
     
     for i=1:n
         
@@ -75,7 +76,8 @@ end
 % ----------------steepest descent algorithm---------------
 cp = [100, 150]; % cp stands for 'current point' point of SD alg
 
-for i = 1:100
+for i = 1:10
+    disp(griewank(cp))
     % calculate derivative at point
     cp_val = griewank(cp); % evaluate griewank at cp
     d_cp = d_griewank(cp); % evaluate derivative of griewank at cp
@@ -87,6 +89,49 @@ for i = 1:100
     
     % conduct golden section search in direction of negative gradient
     
-    alpha = golden_search(x1, x2, d_cp);
-    cp = p
+    alpha = golden_search(x1, x2, cp, d_cp);
+    cp = cp - alpha * d_cp;
 end
+
+% ------------powell conjugate gradient algorithm----------------
+cp = [100, 150]; % cp stands for 'current point' point of SD alg
+
+for i = 1:10
+    disp(griewank(cp))
+    % calculate derivative at point
+    cp_val = griewank(cp); % evaluate griewank at cp
+    d_cp = d_griewank(cp); % evaluate derivative of griewank at cp
+    d_cp = % fill in with CG
+    fprintf('griewank(%d,%d) = %d\n', cp(1), cp(2), cp_val)
+    fprintf('derivative of griewank(%d,%d) = (%d,%d)\n', cp(1), cp(2), d_cp(1), d_cp(2))
+    
+    % find bracket for golden section
+    [x1,x2] = bracket(cp, d_cp);
+    
+    % conduct golden section search in direction of negative gradient
+    
+    alpha = golden_search(x1, x2, cp, d_cp);
+    cp = cp - alpha * d_cp;
+end
+
+% ------------rank one correction algorithm----------------
+cp = [100, 150]; % cp stands for 'current point' point of SD alg
+
+for i = 1:10
+    disp(griewank(cp))
+    % calculate derivative at point
+    cp_val = griewank(cp); % evaluate griewank at cp
+    d_cp = d_griewank(cp); % evaluate derivative of griewank at cp
+    d_cp = % fill in with CG
+    fprintf('griewank(%d,%d) = %d\n', cp(1), cp(2), cp_val)
+    fprintf('derivative of griewank(%d,%d) = (%d,%d)\n', cp(1), cp(2), d_cp(1), d_cp(2))
+    
+    % find bracket for golden section
+    [x1,x2] = bracket(cp, d_cp);
+    
+    % conduct golden section search in direction of negative gradient
+    
+    alpha = golden_search(x1, x2, cp, d_cp);
+    cp = cp - alpha * d_cp;
+end
+
