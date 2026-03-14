@@ -76,7 +76,8 @@ end
 % ----------------steepest descent algorithm---------------
 cp = [100, 150]; % cp stands for 'current point' point of SD alg
 
-for i = 1:100
+for i = 1:10
+    disp(griewank(cp))
     % calculate derivative at point
     cp_val = griewank(cp); % evaluate griewank at cp
     d_cp = d_griewank(cp); % evaluate derivative of griewank at cp
