@@ -1,0 +1,16 @@
+% ---------minimizing griewank function (problem 2)----------------
+
+function output = griewank(x)
+    output = 1 + x(1).^2 ./ 4000 + x(2).^2 ./ 4000 - cos(x(1)).*cos(x(2)/sqrt(2));
+end
+
+function output = 
+
+disp(griewank([1,2]))
+
+% make a 5x5x2 matrix first page = x1 second page = x2
+
+swarm = rand([5 5 2]);
+swarm = swarm - 0.5; % allow results to be negative
+swarm = swarm * 14; % scale up to -7x7
+
