@@ -1,18 +1,68 @@
 % ---------minimizing griewank function (problem 2)----------------
 
+% returns vector of solutions for a matrix of nx2 coordinates
 function output = griewank(x)
     output = 1 + x(:,1).^2 ./ 4000 + x(:,2).^2 ./ 4000 - cos(x(:,1)).*cos(x(:,2)/sqrt(2));
 end
 
-% function output = eval(swarm)
-% 
-% end
+% returns best overall corrdinate and vector of best coordinates for each
+% particle
+function [gbest, pbest] = evaluate(swarm, pbest)
+    swarm_outputs = griewank(swarm);
+    pbest_outputs = griewank(pbest);
+    pbest(swarm_outputs < pbest_outputs, :) = swarm(swarm_outputs < pbest_outputs, :);
+    pbest_outputs = griewank(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:);
+end
+
+num_particles = 5;
 
 % make a 5x5x2 matrix first page = x1 second page = x2
-
-swarm = rand([25 2]); % generate 25 random particles
+swarm = rand([num_particles 2]); % generate 25 random particles
 swarm = swarm - 0.5; % allow results to be negative
 swarm = swarm * 14; % scale up to -7x7
 
-griewank(swarm)
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+for i = 1:100
+    % generate random vectors
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    % calculate new velocity
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    %update swarm
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    % for plotting
+    outputs = griewank(swarm);
+    best = [best griewank(gbest)];
+    average = [average mean(griewank(pbest))];
+    worst = [worst max(griewank(pbest))];
+end
+
+% plotting
+figure;
+plot(best, 'LineWidth', 2); hold on;
+plot(average, 'LineWidth', 2);
+plot(worst, 'LineWidth', 2);
+grid on;
+xlabel('Iteration');
+ylabel('Objective value');
+title('PSO Performance on Griewank Function');
+legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+hold off;
+
 
