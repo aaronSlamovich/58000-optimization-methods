@@ -66,3 +66,71 @@ legend('Global Best', 'Average', 'Worst', 'Location', 'best');
 hold off;
 
 
+% ---------minimizing peaks function (problem 3)---------------
+
+function output = my_peaks(x)
+    a = 3.*(1-x(:,1)).^2.*exp(-1*x(:,1).^2-(x(:,2)+1).^2);
+    b = 10*(x(:,1)./5 - x(:,1).^3 - x(:,2).^5).*exp(-x(:,1).^2-x(:,2).^2);
+    c = (exp(-1*(x(:,1)+1).^2 - x(:,2).^2)) ./3;
+    output = a-b-c;
+end
+
+% returns best overall corrdinate and vector of best coordinates for each
+% particle
+function [gbest, pbest] = evaluate_peaks(swarm, pbest)
+    swarm_outputs = my_peaks(swarm);
+    pbest_outputs = my_peaks(pbest);
+    pbest(swarm_outputs < pbest_outputs, :) = swarm(swarm_outputs < pbest_outputs, :);
+    pbest_outputs = my_peaks(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:); % change to preserve current gbest if new generation doesn't improve
+end
+
+num_particles = 5;
+
+% make a 5x5x2 matrix first page = x1 second page = x2
+swarm = rand([num_particles 2]); % generate 25 random particles
+swarm = swarm - 0.5; % allow results to be negative
+swarm = swarm * 6; % scale up to -3x3
+
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+for i = 1:100
+    % generate random vectors
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    % calculate new velocity
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    %update swarm
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    % for plotting
+    outputs = my_peaks(swarm);
+    best = [best my_peaks(gbest)];
+    average = [average mean(my_peaks(pbest))];
+    worst = [worst max(my_peaks(pbest))];
+end
+
+% plotting
+figure;
+plot(best, 'LineWidth', 2); hold on;
+plot(average, 'LineWidth', 2);
+plot(worst, 'LineWidth', 2);
+grid on;
+xlabel('Iteration');
+ylabel('Objective value');
+title('PSO Performance on Peaks Function');
+legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+hold off;
