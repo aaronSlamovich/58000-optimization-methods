@@ -152,5 +152,24 @@ end
 
 % evaluate quality
 
-% find distance 
+% find distance for each chromosome
 d = sum(abs(P(:,1:end-1) - P (:,2:end)),2);
+
+% map distance to quality
+q = 1./d; % might want to try a different mapping this might not be too good
+q = q./sum(q); % probability of selection
+
+% select mating pool with replacement
+% try making histogram and applying uniform distribution to it
+r = rand(20,1);
+edges = [];
+for i = 1:pop_size
+    edges(i) = sum(q(1:i));
+end
+
+[selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
+
+M = [] % initialize mating pool
+for i = 1:pop_size
+    for j = 
+end

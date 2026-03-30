@@ -160,3 +160,19 @@ q = 1./d; % might want to try a different mapping this might not be too good
 q = q./sum(q); % probability of selection
 
 % select mating pool with replacement
+% try making histogram and applying uniform distribution to it
+r = rand(20,1);
+edges = [0];
+for i = 1:pop_size
+    edges = [edges, sum(q(1:i))];
+end
+
+[selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
+
+M = [] % initialize mating pool
+for i = 1:pop_size
+    for j = 1:selections(i)
+        M = [M; P(i,:)];
+    end
+end
+
