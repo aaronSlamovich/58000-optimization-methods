@@ -1,4 +1,4 @@
-% ---------minimizing griewank function (problem 2)----------------
+% ---------minimizing griewank function (Problem 2)----------------
 
 % returns vector of solutions for a matrix of nx2 coordinates
 function output = griewank(x)
@@ -54,19 +54,19 @@ for i = 1:100
 end
 
 % plotting
-figure;
-plot(best, 'LineWidth', 2); hold on;
-plot(average, 'LineWidth', 2);
-plot(worst, 'LineWidth', 2);
-grid on;
-xlabel('Iteration');
-ylabel('Objective value');
-title('PSO Performance on Griewank Function');
-legend('Global Best', 'Average', 'Worst', 'Location', 'best');
-hold off;
+% figure;
+% plot(best, 'LineWidth', 2); hold on;
+% plot(average, 'LineWidth', 2);
+% plot(worst, 'LineWidth', 2);
+% grid on;
+% xlabel('Iteration');
+% ylabel('Objective value');
+% title('PSO Performance on Griewank Function');
+% legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+% hold off;
 
 
-% ---------minimizing peaks function (problem 3)---------------
+% ---------minimizing peaks function (Problem 3)---------------
 
 function output = my_peaks(x)
     a = 3.*(1-x(:,1)).^2.*exp(-1*x(:,1).^2-(x(:,2)+1).^2);
@@ -124,13 +124,39 @@ for i = 1:100
 end
 
 % plotting
-figure;
-plot(best, 'LineWidth', 2); hold on;
-plot(average, 'LineWidth', 2);
-plot(worst, 'LineWidth', 2);
-grid on;
-xlabel('Iteration');
-ylabel('Objective value');
-title('PSO Performance on Peaks Function');
-legend('Global Best', 'Average', 'Worst', 'Location', 'best');
-hold off;
+% figure;
+% plot(best, 'LineWidth', 2); hold on;
+% plot(average, 'LineWidth', 2);
+% plot(worst, 'LineWidth', 2);
+% grid on;
+% xlabel('Iteration');
+% ylabel('Objective value');
+% title('PSO Performance on Peaks Function');
+% legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+% hold off;
+
+%------traveling salesperson genetic algorithm (Problem 4)-----------
+
+% define city locations
+x = [0.4306, 3.7094, 6.9330, 9.3582, 4.7758, 1.2910, 4.8381, 9.4560, 3.6774, 3.2849];
+y = [7.7288, 2.9727, 1.7785, 6.9080, 2.6394, 4.5774, 8.43692, 8.8150, 7.0002, 7.5569];
+
+loc = [x;y];
+
+% initialize population
+pop_size = 20;
+P = [];
+for i = 1:pop_size
+    P = [P;randperm(10,10)];
+end
+
+% evaluate quality
+
+% find distance for each chromosome
+d = sum(abs(P(:,1:end-1) - P (:,2:end)),2);
+
+% map distance to quality
+q = 1./d; % might want to try a different mapping this might not be too good
+q = q./sum(q); % probability of selection
+
+% select mating pool with replacement
