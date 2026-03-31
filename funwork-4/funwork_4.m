@@ -169,10 +169,23 @@ end
 
 [selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
 
-M = [] % initialize mating pool
+M = []; % initialize mating pool
 for i = 1:pop_size
     for j = 1:selections(i)
         M = [M; P(i,:)];
     end
 end
 
+% perform crossover
+new_P = [];
+
+for i = 1:pop_size
+    r = randperm(10,2);
+    cross = M(i,:);
+    temp = cross(r(1));
+    cross(r(1)) = cross(r(2));
+    cross(r(2)) = temp;
+    new_P = [new_P; cross];
+end
+
+disp(new_P)
