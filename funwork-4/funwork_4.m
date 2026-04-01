@@ -137,6 +137,52 @@ end
 
 %------traveling salesperson genetic algorithm (Problem 4)-----------
 
+% evaluate quality
+function q = quality(P, x, y)
+    % find distance for each chromosome
+    d1 = sum(abs(x(P(:,1:end-1)) - x(P(:,2:end))),2);
+    d2 = sum(abs(y(P(:,1:end-1)) - y(P(:,2:end))),2);
+    d = d1.^2 + d2.^2;
+    
+    
+    % map distance to quality
+    q = 1./d; % might want to try a different mapping this might not be too good
+    q = q./sum(q); % probability of selection (normalizes quality values so they sum to 1)
+end
+
+function M = select(q, pop_size, P)
+    % select mating pool with replacement
+    % try making histogram and applying uniform distribution to it
+    r = rand(pop_size,1);
+    edges = [0];
+    for i = 1:pop_size
+        edges = [edges, sum(q(1:i))];
+    end
+    
+    [selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
+
+    M = []; % initialize mating pool
+    for i = 1:pop_size
+        for j = 1:selections(i)
+            M = [M; P(i,:)];
+        end
+    end
+end
+
+function new_P = crossover(M, pop_size)
+    % perform crossover
+    new_P = [];
+    
+    for i = 1:pop_size
+        r = randperm(10,2);
+        cross = M(i,:);
+        temp = cross(r(1));
+        cross(r(1)) = cross(r(2));
+        cross(r(2)) = temp;
+        new_P = [new_P; cross];
+    end
+end
+
 % define city locations
 x = [0.4306, 3.7094, 6.9330, 9.3582, 4.7758, 1.2910, 4.8381, 9.4560, 3.6774, 3.2849];
 y = [7.7288, 2.9727, 1.7785, 6.9080, 2.6394, 4.5774, 8.43692, 8.8150, 7.0002, 7.5569];
@@ -144,48 +190,76 @@ y = [7.7288, 2.9727, 1.7785, 6.9080, 2.6394, 4.5774, 8.43692, 8.8150, 7.0002, 7.
 loc = [x;y];
 
 % initialize population
-pop_size = 20;
+pop_size = 50;
 P = [];
 for i = 1:pop_size
     P = [P;randperm(10,10)];
 end
 
-% evaluate quality
+% declare global vars
+best_arr = [0];
+avg_arr = [];
+worst_arr = [];
+best_path = [];
 
-% find distance for each chromosome
-d = sum(abs(P(:,1:end-1) - P (:,2:end)),2);
-
-% map distance to quality
-q = 1./d; % might want to try a different mapping this might not be too good
-q = q./sum(q); % probability of selection
-
-% select mating pool with replacement
-% try making histogram and applying uniform distribution to it
-r = rand(20,1);
-edges = [0];
-for i = 1:pop_size
-    edges = [edges, sum(q(1:i))];
-end
-
-[selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
-
-M = []; % initialize mating pool
-for i = 1:pop_size
-    for j = 1:selections(i)
-        M = [M; P(i,:)];
+% run genetic alg loop
+for i = 1:10000
+    q = quality(P,x,y);
+    maximum = max(q);
+    best_arr = [best_arr ; max(max(best_arr), max(q))];
+    avg_arr = [avg_arr ; mean(q)];
+    worst_arr = [worst_arr ; min(q)];
+    
+    % keep track of the best path found so far
+    if(max(q) >= max(best_arr))
+        [maximum, max_idx] = max(q);
+        best_path = P(max_idx, :);
     end
+
+    M = select(q, pop_size, P);
+    M(1,:) = best_path;
+
+    new_P = crossover(M, pop_size);
+    P = new_P;
 end
 
-% perform crossover
-new_P = [];
 
-for i = 1:pop_size
-    r = randperm(10,2);
-    cross = M(i,:);
-    temp = cross(r(1));
-    cross(r(1)) = cross(r(2));
-    cross(r(2)) = temp;
-    new_P = [new_P; cross];
+
+disp('Best Path: ')
+disp(best_path);
+
+figure;
+plot(best_arr, 'LineWidth', 2); hold on;
+plot(avg_arr, 'LineWidth', 2);
+plot(worst_arr, 'LineWidth', 2);
+grid on;
+xlabel('Generation');
+ylabel('Quality');
+title('Traveling Salesperson GA Performance');
+legend('Best so far', 'Average', 'Worst', 'Location', 'best');
+hold off;
+
+figure;
+scatter(x, y, 80, 'filled'); hold on;
+grid on;
+axis equal;
+xlabel('x');
+ylabel('y');
+title('Best Path Found');
+
+% label each city
+for i = 1:length(x)
+    text(x(i) + 0.1, y(i) + 0.1, num2str(i));
 end
 
-disp(new_P)
+% reorder coordinates according to best_path
+path_x = x(best_path);
+path_y = y(best_path);
+
+% connect cities in the order of best_path
+plot(path_x, path_y, '-o', 'LineWidth', 2, 'MarkerSize', 6);
+
+% optionally close the tour by returning to the first city
+plot([path_x(end), path_x(1)], [path_y(end), path_y(1)], '-o', 'LineWidth', 2, 'MarkerSize', 6);
+
+hold off;
