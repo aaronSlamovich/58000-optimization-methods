@@ -1,0 +1,699 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>funwork_4</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2026-04-03">
+<meta name="DC.source" content="funwork_4.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="comment">% ---------minimizing griewank function (Problem 2)----------------</span>
+
+<span class="comment">% returns vector of solutions for a matrix of nx2 coordinates</span>
+<span class="keyword">function</span> output = griewank(x)
+    output = 1 + x(:,1).^2 ./ 4000 + x(:,2).^2 ./ 4000 - cos(x(:,1)).*cos(x(:,2)/sqrt(2));
+<span class="keyword">end</span>
+
+<span class="comment">% returns best overall corrdinate and vector of best coordinates for each</span>
+<span class="comment">% particle</span>
+<span class="keyword">function</span> [gbest, pbest] = evaluate(swarm, pbest)
+    swarm_outputs = griewank(swarm);
+    pbest_outputs = griewank(pbest);
+    pbest(swarm_outputs &lt; pbest_outputs, :) = swarm(swarm_outputs &lt; pbest_outputs, :);
+    pbest_outputs = griewank(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:);
+<span class="keyword">end</span>
+
+num_particles = 5;
+
+<span class="comment">% make a 5x5x2 matrix first page = x1 second page = x2</span>
+swarm = rand([num_particles 2]); <span class="comment">% generate 25 random particles</span>
+swarm = swarm - 0.5; <span class="comment">% allow results to be negative</span>
+swarm = swarm * 14; <span class="comment">% scale up to -7x7</span>
+
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+<span class="keyword">for</span> i = 1:100
+    <span class="comment">% generate random vectors</span>
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    <span class="comment">% calculate new velocity</span>
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    <span class="comment">%update swarm</span>
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    <span class="comment">% for plotting</span>
+    outputs = griewank(swarm);
+    best = [best griewank(gbest)];
+    average = [average mean(griewank(pbest))];
+    worst = [worst max(griewank(pbest))];
+<span class="keyword">end</span>
+
+<span class="comment">% plotting</span>
+<span class="comment">% figure;</span>
+<span class="comment">% plot(best, 'LineWidth', 2); hold on;</span>
+<span class="comment">% plot(average, 'LineWidth', 2);</span>
+<span class="comment">% plot(worst, 'LineWidth', 2);</span>
+<span class="comment">% grid on;</span>
+<span class="comment">% xlabel('Iteration');</span>
+<span class="comment">% ylabel('Objective value');</span>
+<span class="comment">% title('PSO Performance on Griewank Function');</span>
+<span class="comment">% legend('Global Best', 'Average', 'Worst', 'Location', 'best');</span>
+<span class="comment">% hold off;</span>
+
+
+<span class="comment">% ---------minimizing peaks function (Problem 3)---------------</span>
+
+<span class="keyword">function</span> output = my_peaks(x)
+    a = 3.*(1-x(:,1)).^2.*exp(-1*x(:,1).^2-(x(:,2)+1).^2);
+    b = 10*(x(:,1)./5 - x(:,1).^3 - x(:,2).^5).*exp(-x(:,1).^2-x(:,2).^2);
+    c = (exp(-1*(x(:,1)+1).^2 - x(:,2).^2)) ./3;
+    output = a-b-c;
+<span class="keyword">end</span>
+
+<span class="comment">% returns best overall corrdinate and vector of best coordinates for each</span>
+<span class="comment">% particle</span>
+<span class="keyword">function</span> [gbest, pbest] = evaluate_peaks(swarm, pbest)
+    swarm_outputs = my_peaks(swarm);
+    pbest_outputs = my_peaks(pbest);
+    pbest(swarm_outputs &lt; pbest_outputs, :) = swarm(swarm_outputs &lt; pbest_outputs, :);
+    pbest_outputs = my_peaks(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:); <span class="comment">% change to preserve current gbest if new generation doesn't improve</span>
+<span class="keyword">end</span>
+
+num_particles = 5;
+
+<span class="comment">% make a 5x5x2 matrix first page = x1 second page = x2</span>
+swarm = rand([num_particles 2]); <span class="comment">% generate 25 random particles</span>
+swarm = swarm - 0.5; <span class="comment">% allow results to be negative</span>
+swarm = swarm * 6; <span class="comment">% scale up to -3x3</span>
+
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+<span class="keyword">for</span> i = 1:100
+    <span class="comment">% generate random vectors</span>
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    <span class="comment">% calculate new velocity</span>
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    <span class="comment">%update swarm</span>
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    <span class="comment">% for plotting</span>
+    outputs = my_peaks(swarm);
+    best = [best my_peaks(gbest)];
+    average = [average mean(my_peaks(pbest))];
+    worst = [worst max(my_peaks(pbest))];
+<span class="keyword">end</span>
+
+<span class="comment">% plotting</span>
+<span class="comment">% figure;</span>
+<span class="comment">% plot(best, 'LineWidth', 2); hold on;</span>
+<span class="comment">% plot(average, 'LineWidth', 2);</span>
+<span class="comment">% plot(worst, 'LineWidth', 2);</span>
+<span class="comment">% grid on;</span>
+<span class="comment">% xlabel('Iteration');</span>
+<span class="comment">% ylabel('Objective value');</span>
+<span class="comment">% title('PSO Performance on Peaks Function');</span>
+<span class="comment">% legend('Global Best', 'Average', 'Worst', 'Location', 'best');</span>
+<span class="comment">% hold off;</span>
+
+<span class="comment">%------traveling salesperson genetic algorithm (Problem 4)-----------</span>
+
+<span class="comment">% evaluate quality</span>
+<span class="keyword">function</span> q = quality(P, x, y)
+    <span class="comment">% find distance for each chromosome</span>
+    d1 = sum(abs(x(P(:,1:end-1)) - x(P(:,2:end))),2);
+    d2 = sum(abs(y(P(:,1:end-1)) - y(P(:,2:end))),2);
+    d = d1.^2 + d2.^2;
+
+
+    <span class="comment">% map distance to quality</span>
+    q = 1./d; <span class="comment">% might want to try a different mapping this might not be too good</span>
+    q = q./sum(q); <span class="comment">% probability of selection (normalizes quality values so they sum to 1)</span>
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> M = select(q, pop_size, P)
+    <span class="comment">% select mating pool with replacement</span>
+    <span class="comment">% try making histogram and applying uniform distribution to it</span>
+    r = rand(pop_size,1);
+    edges = [0];
+    <span class="keyword">for</span> i = 1:pop_size
+        edges = [edges, sum(q(1:i))];
+    <span class="keyword">end</span>
+
+    [selections, edges] = histcounts(r, edges); <span class="comment">% selections is number of times each chromosome is selected</span>
+
+    M = []; <span class="comment">% initialize mating pool</span>
+    <span class="keyword">for</span> i = 1:pop_size
+        <span class="keyword">for</span> j = 1:selections(i)
+            M = [M; P(i,:)];
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> new_P = crossover(M, pop_size)
+    <span class="comment">% perform crossover</span>
+    new_P = [];
+
+    <span class="keyword">for</span> i = 1:pop_size
+        r = randperm(10,2);
+        cross = M(i,:);
+        temp = cross(r(1));
+        cross(r(1)) = cross(r(2));
+        cross(r(2)) = temp;
+        new_P = [new_P; cross];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% define city locations</span>
+x = [0.4306, 3.7094, 6.9330, 9.3582, 4.7758, 1.2910, 4.8381, 9.4560, 3.6774, 3.2849];
+y = [7.7288, 2.9727, 1.7785, 6.9080, 2.6394, 4.5774, 8.43692, 8.8150, 7.0002, 7.5569];
+
+loc = [x;y];
+
+<span class="comment">% initialize population</span>
+pop_size = 50;
+P = [];
+<span class="keyword">for</span> i = 1:pop_size
+    P = [P;randperm(10,10)];
+<span class="keyword">end</span>
+
+<span class="comment">% declare global vars</span>
+best_arr = [0];
+avg_arr = [];
+worst_arr = [];
+best_path = [];
+
+<span class="comment">% run genetic alg loop</span>
+<span class="keyword">for</span> i = 1:10000
+    q = quality(P,x,y);
+    maximum = max(q);
+    best_arr = [best_arr ; max(max(best_arr), max(q))];
+    avg_arr = [avg_arr ; mean(q)];
+    worst_arr = [worst_arr ; min(q)];
+
+    <span class="comment">% keep track of the best path found so far</span>
+    <span class="keyword">if</span>(max(q) &gt;= max(best_arr))
+        [maximum, max_idx] = max(q);
+        best_path = P(max_idx, :);
+    <span class="keyword">end</span>
+
+    M = select(q, pop_size, P);
+    M(1,:) = best_path;
+
+    new_P = crossover(M, pop_size);
+    P = new_P;
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% disp('Best Path: ')</span>
+<span class="comment">% disp(best_path);</span>
+<span class="comment">%</span>
+<span class="comment">% figure;</span>
+<span class="comment">% plot(best_arr, 'LineWidth', 2); hold on;</span>
+<span class="comment">% plot(avg_arr, 'LineWidth', 2);</span>
+<span class="comment">% plot(worst_arr, 'LineWidth', 2);</span>
+<span class="comment">% grid on;</span>
+<span class="comment">% xlabel('Generation');</span>
+<span class="comment">% ylabel('Quality');</span>
+<span class="comment">% title('Traveling Salesperson GA Performance');</span>
+<span class="comment">% legend('Best so far', 'Average', 'Worst', 'Location', 'best');</span>
+<span class="comment">% hold off;</span>
+<span class="comment">%</span>
+<span class="comment">% figure;</span>
+<span class="comment">% scatter(x, y, 80, 'filled'); hold on;</span>
+<span class="comment">% grid on;</span>
+<span class="comment">% axis equal;</span>
+<span class="comment">% xlabel('x');</span>
+<span class="comment">% ylabel('y');</span>
+<span class="comment">% title('Best Path Found');</span>
+<span class="comment">%</span>
+<span class="comment">% % label each city</span>
+<span class="comment">% for i = 1:length(x)</span>
+<span class="comment">%     text(x(i) + 0.1, y(i) + 0.1, num2str(i));</span>
+<span class="comment">% end</span>
+<span class="comment">%</span>
+<span class="comment">% % reorder coordinates according to best_path</span>
+<span class="comment">% path_x = x(best_path);</span>
+<span class="comment">% path_y = y(best_path);</span>
+<span class="comment">%</span>
+<span class="comment">% % connect cities in the order of best_path</span>
+<span class="comment">% plot(path_x, path_y, '-o', 'LineWidth', 2, 'MarkerSize', 6);</span>
+<span class="comment">%</span>
+<span class="comment">% % optionally close the tour by returning to the first city</span>
+<span class="comment">% plot([path_x(end), path_x(1)], [path_y(end), path_y(1)], '-o', 'LineWidth', 2, 'MarkerSize', 6);</span>
+<span class="comment">%</span>
+<span class="comment">% hold off;</span>
+
+<span class="comment">% ----------linprog (Problem 5)------------</span>
+
+<span class="comment">% Cost vector</span>
+f = [7 10 14 8  7 11 12 6  5 8 15 9]';
+
+<span class="comment">% Equality constraints</span>
+Aeq = [
+    <span class="comment">% supply constraints</span>
+    1 1 1 1  0 0 0 0  0 0 0 0
+    0 0 0 0  1 1 1 1  0 0 0 0
+    0 0 0 0  0 0 0 0  1 1 1 1
+
+    <span class="comment">% demand constraints</span>
+    1 0 0 0  1 0 0 0  1 0 0 0
+    0 1 0 0  0 1 0 0  0 1 0 0
+    0 0 1 0  0 0 1 0  0 0 1 0
+    0 0 0 1  0 0 0 1  0 0 0 1
+];
+
+beq = [30; 40; 30; 20; 20; 25; 35];
+
+<span class="comment">% Lower bounds</span>
+lb = zeros(12,1);
+
+<span class="comment">% No inequality constraints</span>
+A = [];
+b = [];
+
+<span class="comment">% Solve</span>
+[xopt, fval, exitflag, output] = linprog(f, A, b, Aeq, beq, lb);
+
+<span class="comment">% Display solution as 3x4 shipping table</span>
+X = reshape(xopt, 4, 3)';
+disp(X)
+disp(fval)
+</pre>
+<pre class="codeoutput error">Undefined function 'linprog' for input arguments of type 'double'.
+
+Error in funwork_4 (line 296)
+[xopt, fval, exitflag, output] = linprog(f, A, b, Aeq, beq, lb);
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-minimizing griewank function (Problem 2)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% returns vector of solutions for a matrix of nx2 coordinates
+function output = griewank(x)
+    output = 1 + x(:,1).^2 ./ 4000 + x(:,2).^2 ./ 4000 - cos(x(:,1)).*cos(x(:,2)/sqrt(2));
+end
+
+% returns best overall corrdinate and vector of best coordinates for each
+% particle
+function [gbest, pbest] = evaluate(swarm, pbest)
+    swarm_outputs = griewank(swarm);
+    pbest_outputs = griewank(pbest);
+    pbest(swarm_outputs < pbest_outputs, :) = swarm(swarm_outputs < pbest_outputs, :);
+    pbest_outputs = griewank(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:);
+end
+
+num_particles = 5;
+
+% make a 5x5x2 matrix first page = x1 second page = x2
+swarm = rand([num_particles 2]); % generate 25 random particles
+swarm = swarm - 0.5; % allow results to be negative
+swarm = swarm * 14; % scale up to -7x7
+
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+for i = 1:100
+    % generate random vectors
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    % calculate new velocity
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    %update swarm
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    % for plotting
+    outputs = griewank(swarm);
+    best = [best griewank(gbest)];
+    average = [average mean(griewank(pbest))];
+    worst = [worst max(griewank(pbest))];
+end
+
+% plotting
+% figure;
+% plot(best, 'LineWidth', 2); hold on;
+% plot(average, 'LineWidth', 2);
+% plot(worst, 'LineWidth', 2);
+% grid on;
+% xlabel('Iteration');
+% ylabel('Objective value');
+% title('PSO Performance on Griewank Function');
+% legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+% hold off;
+
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-minimizing peaks function (Problem 3)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+function output = my_peaks(x)
+    a = 3.*(1-x(:,1)).^2.*exp(-1*x(:,1).^2-(x(:,2)+1).^2);
+    b = 10*(x(:,1)./5 - x(:,1).^3 - x(:,2).^5).*exp(-x(:,1).^2-x(:,2).^2);
+    c = (exp(-1*(x(:,1)+1).^2 - x(:,2).^2)) ./3;
+    output = a-b-c;
+end
+
+% returns best overall corrdinate and vector of best coordinates for each
+% particle
+function [gbest, pbest] = evaluate_peaks(swarm, pbest)
+    swarm_outputs = my_peaks(swarm);
+    pbest_outputs = my_peaks(pbest);
+    pbest(swarm_outputs < pbest_outputs, :) = swarm(swarm_outputs < pbest_outputs, :);
+    pbest_outputs = my_peaks(pbest);
+    [mini, min_idx] = min(pbest_outputs);
+    gbest = pbest(min_idx,:); % change to preserve current gbest if new generation doesn't improve
+end
+
+num_particles = 5;
+
+% make a 5x5x2 matrix first page = x1 second page = x2
+swarm = rand([num_particles 2]); % generate 25 random particles
+swarm = swarm - 0.5; % allow results to be negative
+swarm = swarm * 6; % scale up to -3x3
+
+[gbest, pbest] = evaluate(swarm, swarm);
+w = 0.9;
+c1 = 2;
+c2 = 2;
+v_old = [0,0];
+best = [];
+average = [];
+worst = [];
+
+for i = 1:100
+    % generate random vectors
+    r = rand([num_particles, 2]);
+    s = rand([num_particles, 2]);
+
+    % calculate new velocity
+    v_new = w .* v_old + c1 .* r .* (pbest - swarm) + c2 .* s .* (gbest - swarm);
+
+    %update swarm
+    swarm = swarm + v_new;
+    v_old = v_new;
+
+    [gbest, pbest] = evaluate(swarm, pbest);
+
+    % for plotting
+    outputs = my_peaks(swarm);
+    best = [best my_peaks(gbest)];
+    average = [average mean(my_peaks(pbest))];
+    worst = [worst max(my_peaks(pbest))];
+end
+
+% plotting
+% figure;
+% plot(best, 'LineWidth', 2); hold on;
+% plot(average, 'LineWidth', 2);
+% plot(worst, 'LineWidth', 2);
+% grid on;
+% xlabel('Iteration');
+% ylabel('Objective value');
+% title('PSO Performance on Peaks Function');
+% legend('Global Best', 'Average', 'Worst', 'Location', 'best');
+% hold off;
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHtraveling salesperson genetic algorithm (Problem 4)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+% evaluate quality
+function q = quality(P, x, y)
+    % find distance for each chromosome
+    d1 = sum(abs(x(P(:,1:end-1)) - x(P(:,2:end))),2);
+    d2 = sum(abs(y(P(:,1:end-1)) - y(P(:,2:end))),2);
+    d = d1.^2 + d2.^2;
+    
+    
+    % map distance to quality
+    q = 1./d; % might want to try a different mapping this might not be too good
+    q = q./sum(q); % probability of selection (normalizes quality values so they sum to 1)
+end
+
+function M = select(q, pop_size, P)
+    % select mating pool with replacement
+    % try making histogram and applying uniform distribution to it
+    r = rand(pop_size,1);
+    edges = [0];
+    for i = 1:pop_size
+        edges = [edges, sum(q(1:i))];
+    end
+    
+    [selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
+
+    M = []; % initialize mating pool
+    for i = 1:pop_size
+        for j = 1:selections(i)
+            M = [M; P(i,:)];
+        end
+    end
+end
+
+function new_P = crossover(M, pop_size)
+    % perform crossover
+    new_P = [];
+    
+    for i = 1:pop_size
+        r = randperm(10,2);
+        cross = M(i,:);
+        temp = cross(r(1));
+        cross(r(1)) = cross(r(2));
+        cross(r(2)) = temp;
+        new_P = [new_P; cross];
+    end
+end
+
+% define city locations
+x = [0.4306, 3.7094, 6.9330, 9.3582, 4.7758, 1.2910, 4.8381, 9.4560, 3.6774, 3.2849];
+y = [7.7288, 2.9727, 1.7785, 6.9080, 2.6394, 4.5774, 8.43692, 8.8150, 7.0002, 7.5569];
+
+loc = [x;y];
+
+% initialize population
+pop_size = 50;
+P = [];
+for i = 1:pop_size
+    P = [P;randperm(10,10)];
+end
+
+% declare global vars
+best_arr = [0];
+avg_arr = [];
+worst_arr = [];
+best_path = [];
+
+% run genetic alg loop
+for i = 1:10000
+    q = quality(P,x,y);
+    maximum = max(q);
+    best_arr = [best_arr ; max(max(best_arr), max(q))];
+    avg_arr = [avg_arr ; mean(q)];
+    worst_arr = [worst_arr ; min(q)];
+    
+    % keep track of the best path found so far
+    if(max(q) >= max(best_arr))
+        [maximum, max_idx] = max(q);
+        best_path = P(max_idx, :);
+    end
+
+    M = select(q, pop_size, P);
+    M(1,:) = best_path;
+
+    new_P = crossover(M, pop_size);
+    P = new_P;
+end
+
+
+
+% disp('Best Path: ')
+% disp(best_path);
+% 
+% figure;
+% plot(best_arr, 'LineWidth', 2); hold on;
+% plot(avg_arr, 'LineWidth', 2);
+% plot(worst_arr, 'LineWidth', 2);
+% grid on;
+% xlabel('Generation');
+% ylabel('Quality');
+% title('Traveling Salesperson GA Performance');
+% legend('Best so far', 'Average', 'Worst', 'Location', 'best');
+% hold off;
+% 
+% figure;
+% scatter(x, y, 80, 'filled'); hold on;
+% grid on;
+% axis equal;
+% xlabel('x');
+% ylabel('y');
+% title('Best Path Found');
+% 
+% % label each city
+% for i = 1:length(x)
+%     text(x(i) + 0.1, y(i) + 0.1, num2str(i));
+% end
+% 
+% % reorder coordinates according to best_path
+% path_x = x(best_path);
+% path_y = y(best_path);
+% 
+% % connect cities in the order of best_path
+% plot(path_x, path_y, '-o', 'LineWidth', 2, 'MarkerSize', 6);
+% 
+% % optionally close the tour by returning to the first city
+% plot([path_x(end), path_x(1)], [path_y(end), path_y(1)], '-o', 'LineWidth', 2, 'MarkerSize', 6);
+% 
+% hold off;
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHlinprog (Problem 5)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% Cost vector
+f = [7 10 14 8  7 11 12 6  5 8 15 9]';
+
+% Equality constraints
+Aeq = [
+    % supply constraints
+    1 1 1 1  0 0 0 0  0 0 0 0
+    0 0 0 0  1 1 1 1  0 0 0 0
+    0 0 0 0  0 0 0 0  1 1 1 1
+
+    % demand constraints
+    1 0 0 0  1 0 0 0  1 0 0 0
+    0 1 0 0  0 1 0 0  0 1 0 0
+    0 0 1 0  0 0 1 0  0 0 1 0
+    0 0 0 1  0 0 0 1  0 0 0 1
+];
+
+beq = [30; 40; 30; 20; 20; 25; 35];
+
+% Lower bounds
+lb = zeros(12,1);
+
+% No inequality constraints
+A = [];
+b = [];
+
+% Solve
+[xopt, fval, exitflag, output] = linprog(f, A, b, Aeq, beq, lb);
+
+% Display solution as 3x4 shipping table
+X = reshape(xopt, 4, 3)';
+disp(X)
+disp(fval)
+##### SOURCE END #####
+-->
+</body>
+</html>
