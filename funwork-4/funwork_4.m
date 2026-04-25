@@ -162,10 +162,10 @@ end
 function M = select(q, pop_size, P)
     % select mating pool with replacement
     % try making histogram and applying uniform distribution to it
-    r = rand(pop_size,1);
-    edges = [0];
+    r = rand(pop_size,1); % generates a random number for each member of the population
+    edges = [0]; % edges of bins
     for i = 1:pop_size
-        edges = [edges, sum(q(1:i))];
+        edges = [edges, sum(q(1:i))]; % each edge is the sum of the probibilities at each point in the pdf
     end
     
     [selections, edges] = histcounts(r, edges); % selections is number of times each chromosome is selected
