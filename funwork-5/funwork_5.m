@@ -1,6 +1,9 @@
 % --------ECE 580 Funwork 5 Aaron Slamovich--------
 % --------problem 1---------
 
+% parameters
+order = 16
+
 % plotting rastrigin's function
 axis = linspace(-11,11,100);
 x1 = (axis./10).^2 - 10 * cos((2*pi*axis)/10);
@@ -20,10 +23,10 @@ function g = genotype(order, coord)
    coord = coord ./ 2;
    coord = coord * (2.^order - 1);
    coord = round(coord);
-   coord = dec2bin(coord);
-   g = cat(2, coord(1,:), coord(2,:)); % will truncate to make as short as possible
+   coord1 = dec2bin(coord(:,1));
+   coord2 = dec2bin(coord(:,2));
+   g = cat(2, coord1, coord2); % will truncate to make as short as possible
 end
-g = genotype(16, [9,10])
 
 % convert genotype to phenotype
 function p = phenotype(order, genotype)
@@ -33,7 +36,6 @@ function p = phenotype(order, genotype)
    p = p .* 2;
    p = p + 8.5;
 end
-p = phenotype(order, g)
 
 % create selection of chromosomes
 function pool = select(phenotype)
@@ -60,7 +62,45 @@ function pool = select(phenotype)
     end
 end
 
-p = [9,10; 8.5, 9.5; 8.5, 10.5; 9, 9.1];
-select(p)
+% perform crossover
+function new_pool = crossover(order, pool)
+    chromosome_length = 2 * order
+    pool_size = size(pool,1)
+
+    % randomly assign pairs
+    r1 = randi([1,pool_size], 1, pool_size/2)
+    r2 = randi([1,pool_size], 1, pool_size/2)
+
+    new_pool = []
+    for i = 1:pool_size/2
+        cross_point = randi([1,2*order - 1], 1, 1)
+        chromosome1 = [pool(r1(i),[1:cross_point]), pool(r2(i),[cross_point:2*order])]
+        chromosome2 = [pool(r2(i),[1:cross_point]), pool(r1(i),[cross_point:2*order])]
+        new_pool = [new_pool; chromosome1; chromosome2]
+    end
+end
+
+% perform mutation
+function mutated_pool = mutate(order, pool, p_m)
+    % generate a random number for each binary digit in the pool and if >
+    % 0.99 then mutate
+    rand_nums = rand(size(pool))
+    for idx = 1:numel(rand_nums)
+        if(rand_nums(idx) >= (1-p_m))
+            if(pool(idx) == 1)
+                pool(idx) = 0
+            else 
+                pool(idx) = 1
+            end
+        end
+    end
+    mutated_pool = pool
+end
+
+pheno = [9,10; 9.5,10.5; 8.5,9; 9,8.5; 10,10.5; 10.5,10; 8.5, 10.5; 10.5, 8.5]
+pool = select(pheno)
+geno = genotype(order, pool)
+cross = crossover(order, geno)
+mutated = mutate(order,cross,0.5)
 
 

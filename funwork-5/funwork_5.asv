@@ -1,6 +1,9 @@
 % --------ECE 580 Funwork 5 Aaron Slamovich--------
 % --------problem 1---------
 
+% parameters
+order = 16
+
 % plotting rastrigin's function
 axis = linspace(-11,11,100);
 x1 = (axis./10).^2 - 10 * cos((2*pi*axis)/10);
@@ -10,7 +13,7 @@ surfc(axis,axis,M)
 
 % calculate rastrigin
 function r = rastrigin(coord)
-   r = 20 + (coord(1)./10).^2 + (coord(2)./10).^2  - 10.*(cos((2*pi*coord(1))/10) + cos((2*pi*coord(2))/10));
+   r = 20 + (coord(:,1)./10).^2 + (coord(:,2)./10).^2  - 10.*(cos((2*pi*coord(:,1))/10) + cos((2*pi*coord(:,2))/10));
 end
 
 % convert phenotype to genotype
@@ -20,10 +23,10 @@ function g = genotype(order, coord)
    coord = coord ./ 2;
    coord = coord * (2.^order - 1);
    coord = round(coord);
-   coord = dec2bin(coord);
-   g = cat(2, coord(1,:), coord(2,:)); % will truncate to make as short as possible
+   coord1 = dec2bin(coord(:,1));
+   coord2 = dec2bin(coord(:,2));
+   g = cat(2, coord1, coord2); % will truncate to make as short as possible
 end
-g = genotype(16, [9,10])
 
 % convert genotype to phenotype
 function p = phenotype(order, genotype)
@@ -33,33 +36,64 @@ function p = phenotype(order, genotype)
    p = p .* 2;
    p = p + 8.5;
 end
-p = phenotype(order, g)
 
 % create selection of chromosomes
 function pool = select(phenotype)
 
     %calculating qualities
-    pop_size = size(phenotype,1)
-    quality = ones(pop_size)
-    quality = quality./rastrigin(phenotype)
-    quality_sum = sum(quality)
-    quality = quality ./ quality_sum % normalizing distribution
+    pop_size = size(phenotype,1);
+    quality = ones(pop_size, 1);
+    quality = quality./rastrigin(phenotype);
+    quality_sum = sum(quality);
+    quality = quality ./ quality_sum; % normalizing distribution
 
     % selecting chromosomes
-    hist_edges = [0]
+    hist_edges = [0];
     for i = 1:pop_size
-        hist_edges = [hist_edges, sum(quality(1:i))] % defines bin boundaries
+        hist_edges = [hist_edges, sum(quality(1:i))]; % defines bin boundaries
     end
-    rand_nums = rand(pop_size, 1) % generates uniformly distributed numbers between 0 and 1
-    selections = histcounts(rand_nums, hist_edges) % returns how many rand_nums fall within each bin
-    pool = []
+    rand_nums = rand(pop_size, 1); % generates uniformly distributed numbers between 0 and 1
+    selections = histcounts(rand_nums, hist_edges); % returns how many rand_nums fall within each bin
+    pool = [];
     for i = 1:pop_size
         for j = 1:selections(i)
-            pool = [pool ; phenotype(j)]
+            pool = [pool ; phenotype(i,:)];
         end
     end
 end
 
-p = [9,10; 8.5, 9.5; 8.5, 10.5; 9, 9.1]
-select(p)
+% perform crossover
+function crossed_pool = crossover(order, pool)
+    chromosome_length = 2 * order;
+    pool_size = size(pool,1);
+
+    % randomly assign pairs
+    r1 = randi([1,pool_size], 1, pool_size/2);
+    r2 = randi([1,pool_size], 1, pool_size/2);
+
+    new_pool = [];
+    for i = 1:pool_size/2
+        cross_point = randi([1,2*order - 1], 1, 1);
+        chromosome1 = [pool(r1(i),[1:cross_point]), pool(r2(i),[cross_point:2*order])];
+        chromosome2 = [pool(r2(i),[1:cross_point]), pool(r1(i),[cross_point:2*order])];
+        crossed_pool = [new_pool; chromosome1; chromosome2];
+    end
+end
+
+% perform mutation
+function mutated_pool = mutate(order, pool, p_m)
+    % generate a random number for each binary digit in the pool and if >
+    % 0.99 then mutate
+    rand_nums = rand(size(pool))
+    for idx = 1:numel(rand_nums)
+        if(rand_nums(idx) >= 0.99)
+            
+        end
+    end
+end
+
+pheno = [9,10; 9.5,10.5; 8.5,9; 9,8.5; 10,10.5; 10.5,10; 8.5, 10.5; 10.5, 8.5]
+pool = select(pheno)
+geno = genotype(order, pool)
+cross = crossover(order, geno)
 
